@@ -28,7 +28,7 @@ import (
     "fmt"
     "flag"
     "log"
-    "github.com/mengwanguc/motr/mio"
+    "github.com/mengwanguc/go-ds-motr/mio"
 )
 
 func usage() {

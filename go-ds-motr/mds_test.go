@@ -4,7 +4,7 @@ package mds
 import (
    "bytes"
     "testing"
-    "github.com/mengwanguc/motr/mio"
+    "github.com/mengwanguc/go-ds-motr/mio"
     ds "github.com/ipfs/go-datastore"
 
     dstest "github.com/ipfs/go-datastore/test"

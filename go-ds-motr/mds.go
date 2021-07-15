@@ -7,7 +7,7 @@ import (
 //    "flag"
     "log"
     "strings"
-    "github.com/mengwanguc/motr/mio"
+    "github.com/mengwanguc/go-ds-motr/mio"
     ds "github.com/ipfs/go-datastore"
     dsq "github.com/ipfs/go-datastore/query"    
 )

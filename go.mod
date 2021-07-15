@@ -1,4 +1,4 @@
-module github.com/mengwanguc/motr
+module github.com/mengwanguc/go-ds-motr
 
 go 1.15
 
