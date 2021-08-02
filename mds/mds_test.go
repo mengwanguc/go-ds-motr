@@ -19,10 +19,10 @@ import (
 //   defer done()
 func newDS(t *testing.T) (*MotrDS) {
     config := mio.Config{
-        LocalEP:    "10.52.0.244@tcp:12345:33:1000",
-        HaxEP:      "10.52.0.244@tcp:12345:34:1",
-        Profile:    "0x7000000000000001:0",
-        ProcFid:    "0x7200000000000001:64",
+        LocalEP:    "10.230.248.163@tcp:12345:4:1",
+        HaxEP:      "10.230.248.163@tcp:12345:1:1",
+        Profile:    "0x7000000000000001:0x34",
+        ProcFid:    "0x7200000000000001:0x17",
         TraceOn:    false,
         Verbose:    false,
         ThreadsN:   1,
@@ -49,14 +49,14 @@ func TestSuite(t *testing.T) {
         testBasicOperations(t, motrds)
     })
 
-    t.Run("Query", func(t *testing.T) {
+/*    t.Run("Query", func(t *testing.T) {
         testQuery(t, motrds)
     })
 
     t.Run("Batch", func(t *testing.T) {
         testBatch(t, motrds)
     })
-    
+ */   
 }
 
 
