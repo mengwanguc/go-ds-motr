@@ -140,6 +140,7 @@ func checkArg(arg *string, name string) {
 
 var verbose bool
 var threadsN int
+var isInitialised bool = false
 
 // Init initialises mio module.
 // All the usual Motr's init stuff is done here.
@@ -196,6 +197,9 @@ func InitWithConfig(conf Config) {
 //    checkArg(conf.haxEP,   "hax endpoint (-hax)")
 //    checkArg(conf.profile, "profile fid (-prof)")
 //    checkArg(conf.procFid, "my process fid (-proc)")
+    if isInitialised {
+        return
+    }
 
     verbose = conf.Verbose
     threadsN = conf.ThreadsN
@@ -220,11 +224,11 @@ func InitWithConfig(conf Config) {
         log.Panicf("m0_client_init() failed: %v", rc)
     }
 
-    C.m0_container_init(&C.container, nil, &C.M0_UBER_REALM, C.instance)
-    rc = C.container.co_realm.re_entity.en_sm.sm_rc
-    if rc != 0 {
-        log.Panicf("C.m0_container_init() failed: %v", rc)
-    }
+    isInitialised = true
+}
+
+func IsInitialised() (_ bool) {
+    return isInitialised
 }
 
 

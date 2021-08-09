@@ -19,10 +19,32 @@ import (
 //   defer done()
 func newDS(t *testing.T) (*MotrDS) {
     config := mio.Config{
-        LocalEP:    "10.230.248.163@tcp:12345:4:1",
-        HaxEP:      "10.230.248.163@tcp:12345:1:1",
-        Profile:    "0x7000000000000001:0x34",
+        LocalEP:    "10.230.242.162@tcp:12345:4:1",
+        HaxEP:      "10.230.242.162@tcp:12345:1:1",
+        Profile:    "0x7000000000000001:0x3d",
         ProcFid:    "0x7200000000000001:0x17",
+        TraceOn:    false,
+        Verbose:    false,
+        ThreadsN:   1,
+    }
+    indexID := "0x7800000000000001:123456701"
+    motrds, err := Open(config, indexID)
+    if err != nil {
+        t.Fatal("Failed to open index.. error: ", err)
+    }
+    t.Cleanup(func() {
+        motrds.Mkv.Close()
+	})
+    return motrds
+
+}
+
+func newDS2(t *testing.T) (*MotrDS) {
+    config := mio.Config{
+        LocalEP:    "10.230.242.162@tcp:12345:4:2",
+        HaxEP:      "10.230.242.162@tcp:12345:1:1",
+        Profile:    "0x7000000000000001:0x3d",
+        ProcFid:    "0x7200000000000001:0x1a",
         TraceOn:    false,
         Verbose:    false,
         ThreadsN:   1,
@@ -42,11 +64,12 @@ func newDS(t *testing.T) (*MotrDS) {
 
 func TestSuite(t *testing.T) {
     motrds := newDS(t)
+    motrds2 := newDS2(t)
 
 
     // test from go-datastore
     t.Run("BasicOperations", func(t *testing.T) {
-        testBasicOperations(t, motrds)
+        testBasicOperations(t, motrds, motrds2)
     })
 
 /*    t.Run("Query", func(t *testing.T) {
@@ -60,9 +83,9 @@ func TestSuite(t *testing.T) {
 }
 
 
-func testBasicOperations(t *testing.T, motrds *MotrDS) {
+func testBasicOperations(t *testing.T, motrds *MotrDS, motrds2 *MotrDS) {
 	t.Run("Simple", func(t *testing.T) {
-        testSimple(t, motrds)
+        testSimple(t, motrds, motrds2)
     })
 
 	// basic operation tests officially provided by go-datastore
@@ -212,7 +235,7 @@ func testSimpleBatch(t *testing.T, motrds ds.Batching) {
 
 
 // a simple test of operations
-func testSimple(t *testing.T, motrds ds.Datastore) {
+func testSimple(t *testing.T, motrds ds.Datastore, motrds2 ds.Datastore) {
 
     // put
     k := ds.NewKey("foo")
@@ -233,6 +256,19 @@ func testSimple(t *testing.T, motrds ds.Datastore) {
     if !bytes.Equal(getval, val) {
         t.Fatal("value received on get for key foo wasnt what we expected:", string(getval))
     }
+
+    // get from motrds2
+    getval,err = motrds2.Get(k)
+
+    if err != nil {
+        t.Fatal("errr getting value of key foo from datastore: ", err)
+    }
+
+    if !bytes.Equal(getval, val) {
+        t.Fatal("value received on get for key foo wasnt what we expected:", string(getval))
+    }
+
+
 
     //has
     have, err := motrds.Has(k)

@@ -29,7 +29,8 @@ package mio
 // #include "motr/client.h"
 // #include "motr/layout.h" /* m0c_pools_common */
 //
-// extern struct m0_container container;
+// extern struct m0_client    *instance;
+//
 //
 import "C"
 
@@ -37,11 +38,13 @@ import (
     "errors"
     "fmt"
     "unsafe"
+    "log"
 )
 
 // Mkv provides key-value API to Motr
 type Mkv struct {
     idxID   C.struct_m0_uint128
+    mkv_container *C.struct_m0_container
     idx    *C.struct_m0_idx
 }
 
@@ -60,12 +63,19 @@ func (mkv *Mkv) Open(id string, create bool) error {
         return errors.New("index is already opened")
     }
 
+    mkv.mkv_container = (*C.struct_m0_container)(C.calloc(1, C.sizeof_struct_m0_container))
+    C.m0_container_init(mkv.mkv_container, nil, &C.M0_UBER_REALM, C.instance)
+    rc := mkv.mkv_container.co_realm.re_entity.en_sm.sm_rc
+    if rc != 0 {
+        log.Panicf("C.m0_container_init() failed: %v", rc)
+    }
+
     err := mkv.idxNew(id)
     if err != nil {
         return err
     }
 
-    C.m0_idx_init(mkv.idx, &C.container.co_realm, &mkv.idxID)
+    C.m0_idx_init(mkv.idx, &mkv.mkv_container.co_realm, &mkv.idxID)
 
     if create { // Make sure it's created
         var op *C.struct_m0_op

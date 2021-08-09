@@ -3,7 +3,7 @@ package mds
 
 import (
 //    "os"
-//    "fmt"
+    "fmt"
 //    "flag"
     "log"
     "strings"
@@ -20,9 +20,11 @@ type MotrDS struct {
 }
 
 func Open(conf mio.Config, indexID string) (*MotrDS, error) {
+    fmt.Println("-- menglog mio.InitWithConfig(conf) ")
     mio.InitWithConfig(conf)
     var mkv mio.Mkv
     createFlag := true
+    fmt.Println("-- menglog mkv.Open(indexID, createFlag)")
     if err := mkv.Open(indexID, createFlag); err != nil {
         log.Fatalf("failed to open index %v: %v", indexID, err)
         return nil, err
