@@ -1,10 +1,11 @@
+
 package main
 
 import (
     "fmt"
     mio "github.com/mengwanguc/go-ds-motr/mio"
     mds "github.com/mengwanguc/go-ds-motr/mds"
-    ds "github.com/ipfs/go-datastore"
+//    ds "github.com/ipfs/go-datastore"
     query "github.com/ipfs/go-datastore/query"
 )
 
@@ -12,10 +13,10 @@ import (
 
 func main() {
     config := mio.Config{
-        LocalEP:    "10.52.0.244@tcp:12345:33:1000",
-        HaxEP:      "10.52.0.244@tcp:12345:34:1",
-        Profile:    "0x7000000000000001:0",
-        ProcFid:    "0x7200000000000001:64",
+        LocalEP:    "10.230.242.162@tcp:12345:4:1",
+        HaxEP:      "10.230.242.162@tcp:12345:1:1",
+        Profile:    "0x7000000000000001:0x3d",
+        ProcFid:    "0x7200000000000001:0x17",
         TraceOn:    false,
         Verbose:    false,
         ThreadsN:   1,
@@ -30,7 +31,7 @@ func main() {
     all, err := r.Rest()
     for _, e := range all {
         fmt.Println("-------------")
-        motrds.Delete(ds.NewKey(e.Key))
+//y        motrds.Delete(ds.NewKey(e.Key))
         fmt.Println(e.Key, string(e.Value))
     }
 

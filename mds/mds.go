@@ -106,6 +106,7 @@ func (mds *MotrDS) Query(q dsq.Query) (dsq.Results, error) {
     go func() {
         k = []byte{0}
         k, val, err = mds.Mkv.Next(append(k, 0))
+        fmt.Println(k, string(val))
         for err == nil {
             var result dsq.Result
             result.Entry.Key = string(k)

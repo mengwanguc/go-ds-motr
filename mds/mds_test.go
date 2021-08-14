@@ -6,6 +6,7 @@ import (
     "testing"
     "github.com/mengwanguc/go-ds-motr/mio"
     ds "github.com/ipfs/go-datastore"
+    "fmt"
 
     dstest "github.com/ipfs/go-datastore/test"
 )
@@ -41,15 +42,15 @@ func newDS(t *testing.T) (*MotrDS) {
 
 func newDS2(t *testing.T) (*MotrDS) {
     config := mio.Config{
-        LocalEP:    "10.230.242.162@tcp:12345:4:2",
+        LocalEP:    "10.230.242.162@tcp:12345:4:1",
         HaxEP:      "10.230.242.162@tcp:12345:1:1",
         Profile:    "0x7000000000000001:0x3d",
-        ProcFid:    "0x7200000000000001:0x1a",
+        ProcFid:    "0x7200000000000001:0x17",
         TraceOn:    false,
         Verbose:    false,
         ThreadsN:   1,
     }
-    indexID := "0x7800000000000001:123456701"
+    indexID := "0x7800000000000001:123456702"
     motrds, err := Open(config, indexID)
     if err != nil {
         t.Fatal("Failed to open index.. error: ", err)
@@ -241,7 +242,15 @@ func testSimple(t *testing.T, motrds ds.Datastore, motrds2 ds.Datastore) {
     k := ds.NewKey("foo")
     val := []byte("Hello Datastore!")
 
+    k_ := ds.NewKey("foo_")
+    val_ := []byte("Hello Datastore!_")
+
     err := motrds.Put(k, val)
+    if err != nil {
+        t.Fatal("error putting foo to datastore: ", err)
+    }
+
+    err = motrds2.Put(k_, val_)
     if err != nil {
         t.Fatal("error putting foo to datastore: ", err)
     }
@@ -267,6 +276,12 @@ func testSimple(t *testing.T, motrds ds.Datastore, motrds2 ds.Datastore) {
     if !bytes.Equal(getval, val) {
         t.Fatal("value received on get for key foo wasnt what we expected:", string(getval))
     }
+
+
+    fmt.Println(motrds.Get(k))
+    fmt.Println(motrds.Get(k_))
+    fmt.Println(motrds2.Get(k))
+    fmt.Println(motrds2.Get(k_))
 
 
 
