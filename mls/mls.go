@@ -21,7 +21,7 @@ func main() {
         Verbose:    false,
         ThreadsN:   1,
     }
-    indexID := "0x7800000000000001:123456704"
+    indexID := "0x7800000000000001:123456701"
     motrds, err := mds.Open(config, indexID)
     if err != nil {
         fmt.Println("Failed to open index.. error: ", err)
