@@ -40,10 +40,10 @@
 package mio
 
 // #cgo CFLAGS: -I/usr/include/motr
-// #cgo CFLAGS: -I/meng/cortx-motr -I/meng/cortx-motr/extra-libs/galois/include
+// #cgo CFLAGS: -I/root/cortx-motr -I/root/cortx-motr/extra-libs/galois/include
 // #cgo CFLAGS: -DM0_EXTERN=extern -DM0_INTERNAL=
 // #cgo CFLAGS: -Wno-attributes
-// #cgo LDFLAGS: -L/meng/cortx-motr/motr/.libs -Wl,-rpath=/meng/cortx-motr/motr/.libs -lmotr
+// #cgo LDFLAGS: -L/root/cortx-motr/motr/.libs -Wl,-rpath=/root/cortx-motr/motr/.libs -lmotr
 // #include <stdlib.h>
 // #include "lib/types.h"
 // #include "lib/trace.h"   /* m0_trace_set_mmapped_buffer */

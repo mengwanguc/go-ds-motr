@@ -41,6 +41,7 @@ func Open(conf mio.Config, indexID string) (*MotrDS, error) {
 
 
 func (mds *MotrDS) Put(k ds.Key, value []byte) error {
+//    fmt.Println("-- menglog key: ", k, " value: ", value)
     err := mds.Mkv.Put([]byte(k.String()), value, true)
     return err
 }
