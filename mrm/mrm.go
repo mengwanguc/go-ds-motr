@@ -5,13 +5,19 @@ import (
     "fmt"
     mio "github.com/mengwanguc/go-ds-motr/mio"
     mds "github.com/mengwanguc/go-ds-motr/mds"
-//    ds "github.com/ipfs/go-datastore"
+    ds "github.com/ipfs/go-datastore"
     query "github.com/ipfs/go-datastore/query"
 )
 
 
-
 func main() {
+    clearIndex("0x7800000000000001:123456701")
+    clearIndex("0x7800000000000001:123456702")
+    clearIndex("0x7800000000000001:123456703")
+    clearIndex("0x7800000000000001:123456704")
+}
+
+func clearIndex(indexID string) {
     config := mio.Config{
         LocalEP:    "172.31.36.67@tcp:12345:33:1000",
         HaxEP:      "172.31.36.67@tcp:12345:34:1",
@@ -21,7 +27,6 @@ func main() {
         Verbose:    false,
         ThreadsN:   1,
     }
-    indexID := "0x7800000000000001:123456704"
     motrds, err := mds.Open(config, indexID)
     if err != nil {
         fmt.Println("Failed to open index.. error: ", err)
@@ -31,11 +36,9 @@ func main() {
     all, err := r.Rest()
     for _, e := range all {
         fmt.Println("-------------")
-//y        motrds.Delete(ds.NewKey(e.Key))
-        fmt.Println("key: ", e.Key, "\nval: ", string(e.Value))
+        motrds.Delete(ds.NewKey(e.Key))
+        fmt.Println("key: ", e.Key)
     }
 
-//    r, err := motrds.Get(" /CIQENVCICS44LLYUDQ5KVN6ALXC6QRHK2X4R6EUFRMBB5OSFO2FUYDQ ")
-//    fmt.Println(r, err)
     motrds.Mkv.Close()
 }

@@ -1,0 +1,136 @@
+diff --git a/go.mod b/go.mod
+index 8413508b0..2a7e53ed4 100644
+--- a/go.mod
++++ b/go.mod
+@@ -121,6 +121,7 @@ require (
+ 	github.com/libp2p/go-libp2p-yamux v0.5.4
+ 	github.com/libp2p/go-maddr-filter v0.1.0
+ 	github.com/mattn/go-isatty v0.0.13
++	github.com/mengwanguc/go-ds-motr v0.1.6 // indirect
+ 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1
+ 	github.com/mitchellh/go-homedir v1.1.0
+ 	github.com/multiformats/go-base32 v0.0.3
+diff --git a/go.sum b/go.sum
+index 1e93c4cd2..20a41baba 100644
+--- a/go.sum
++++ b/go.sum
+@@ -1256,6 +1256,8 @@ github.com/mdlayher/netlink v0.0.0-20190828143259-340058475d09/go.mod h1:KxeJAFO
+ github.com/mdlayher/netlink v1.0.0/go.mod h1:KxeJAFOFLG6AjpyDkQ/iIhxygIUKD+vcwqcnu43w/+M=
+ github.com/mdlayher/netlink v1.1.0/go.mod h1:H4WCitaheIsdF9yOYu8CFmCgQthAPIWZmcKp9uZHgmY=
+ github.com/mdlayher/wifi v0.0.0-20190303161829-b1436901ddee/go.mod h1:Evt/EIne46u9PtQbeTx2NTcqURpr5K4SvKtGmBuDPN8=
++github.com/mengwanguc/go-ds-motr v0.1.6 h1:dSBygGtw15XrH8NXI0xaGLjBx6BsKQgwX/vQksVHJcQ=
++github.com/mengwanguc/go-ds-motr v0.1.6/go.mod h1:YP0PCn8yqR9rzX++0MDlCHubUxS/JBxoP1wAgymuHFM=
+ github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b/go.mod h1:01TrycV0kFyexm33Z7vhZRXopbI8J3TDReVlkTgMUxE=
+ github.com/microcosm-cc/bluemonday v1.0.1/go.mod h1:hsXNsILzKxV+sX77C5b8FSuKF00vh2OMYv+xgHpAMF4=
+ github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
+diff --git a/node/repo/fsrepo.go b/node/repo/fsrepo.go
+index 5c1c91bc5..7be588bf6 100644
+--- a/node/repo/fsrepo.go
++++ b/node/repo/fsrepo.go
+@@ -23,12 +23,14 @@ import (
+ 	"golang.org/x/xerrors"
+ 
+ 	"github.com/filecoin-project/lotus/blockstore"
+-	badgerbs "github.com/filecoin-project/lotus/blockstore/badger"
++//	badgerbs "github.com/filecoin-project/lotus/blockstore/badger"
+ 	"github.com/filecoin-project/lotus/extern/sector-storage/fsutil"
+ 	"github.com/filecoin-project/lotus/extern/sector-storage/stores"
+ 
+ 	"github.com/filecoin-project/lotus/chain/types"
+ 	"github.com/filecoin-project/lotus/node/config"
++        mbs "github.com/mengwanguc/go-ds-motr/mbs"
++        mio "github.com/mengwanguc/go-ds-motr/mio"
+ )
+ 
+ const (
+@@ -360,7 +362,21 @@ func (fsr *fsLockedRepo) Blockstore(ctx context.Context, domain BlockstoreDomain
+ 			}
+ 		}
+ 
+-		bs, err := badgerbs.Open(opts)
++//		bs, err := badgerbs.Open(opts)
++		var mioConf mio.Config = mio.Config{
++                        LocalEP:    "172.31.36.67@tcp:12345:33:1000",
++                        HaxEP:      "172.31.36.67@tcp:12345:34:1",
++                        Profile:    "0x7000000000000001:0",
++
++                        ProcFid:    "0x7200000000000001:64",
++                        TraceOn:    false,
++                        Verbose:    false,
++                        ThreadsN:   1,
++                }
++
++                var chainIdx = "0x7800000000000001:123456704"
++
++                bs, err := mbs.NewMotrBlockstore(mioConf, chainIdx)
+ 		if err != nil {
+ 			fsr.bsErr = err
+ 			return
+diff --git a/node/repo/fsrepo_ds.go b/node/repo/fsrepo_ds.go
+index 09fb85460..cc58b1e18 100644
+--- a/node/repo/fsrepo_ds.go
++++ b/node/repo/fsrepo_ds.go
+@@ -13,17 +13,26 @@ import (
+ 	badger "github.com/ipfs/go-ds-badger2"
+ 	levelds "github.com/ipfs/go-ds-leveldb"
+ 	measure "github.com/ipfs/go-ds-measure"
++	mds "github.com/mengwanguc/go-ds-motr/mds"
++	mio "github.com/mengwanguc/go-ds-motr/mio"
++
++	"strings"
+ )
+ 
+ type dsCtor func(path string, readonly bool) (datastore.Batching, error)
+ 
+ var fsDatastores = map[string]dsCtor{
+-	"metadata": levelDs,
++//	"metadata": levelDs,
++	"metadata": motrDs,
++	
++	
+ 
+ 	// Those need to be fast for large writes... but also need a really good GC :c
+-	"staging": badgerDs, // miner specific
++//	"staging": badgerDs, // miner specific
++	"staging": motrDs, // miner specific
+ 
+-	"client": badgerDs, // client specific
++//	"client": badgerDs, // client specific
++	"client": motrDs, // client specific
+ }
+ 
+ func badgerDs(path string, readonly bool) (datastore.Batching, error) {
+@@ -44,6 +53,33 @@ func levelDs(path string, readonly bool) (datastore.Batching, error) {
+ 	})
+ }
+ 
++
++
++var mioConf mio.Config = mio.Config{
++	        LocalEP:    "172.31.36.67@tcp:12345:33:1000",
++        	HaxEP:      "172.31.36.67@tcp:12345:34:1",
++        	Profile:    "0x7000000000000001:0",
++        	ProcFid:    "0x7200000000000001:64",
++		TraceOn:    false,
++		Verbose:    false,
++		ThreadsN:   1,
++	}
++
++var metadataIdx = "0x7800000000000001:123456701"
++var stagingIdx = "0x7800000000000001:123456702"
++var clientIdx = "0x7800000000000001:123456703"
++
++
++func motrDs(path string, readonly bool) (datastore.Batching, error) {
++	if strings.Contains(path, "metadata") {
++		return mds.Open(mioConf, metadataIdx)
++	} else if strings.Contains(path, "staging") {
++		return mds.Open(mioConf, stagingIdx)
++	} else {
++		return mds.Open(mioConf, clientIdx)
++	}
++}
++
+ func (fsr *fsLockedRepo) openDatastores(readonly bool) (map[string]datastore.Batching, error) {
+ 	if err := os.MkdirAll(fsr.join(fsDatastore), 0755); err != nil {
+ 		return nil, xerrors.Errorf("mkdir %s: %w", fsr.join(fsDatastore), err)
